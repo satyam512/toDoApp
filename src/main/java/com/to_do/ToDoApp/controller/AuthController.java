@@ -2,19 +2,15 @@ package com.to_do.ToDoApp.controller;
 
 import com.to_do.ToDoApp.configs.JwtTokenProvider;
 import com.to_do.ToDoApp.configs.JwtUtils;
+import com.to_do.ToDoApp.entity.User;
+import com.to_do.ToDoApp.repository.UserRepository;
 import com.to_do.ToDoApp.schemaobjects.request.AuthRequest;
-import com.to_do.ToDoApp.schemaobjects.response.AuthResponse;
-import com.to_do.ToDoApp.service.impl.CustomUserDetailsService;
+import com.to_do.ToDoApp.schemaobjects.request.UserRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +23,8 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
+    private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
 
     @PostMapping("/login")
     public String login(@RequestBody AuthRequest authRequest) {
@@ -35,5 +33,20 @@ public class AuthController {
         );
 
         return jwtUtils.generateToken(authRequest.getUsername());
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@RequestBody UserRequest userRequest) {
+        if (userRepository.findByUsername(userRequest.getUsername()).isPresent()) {
+            return ResponseEntity.badRequest().body("Username is already taken");
+        }
+
+        User user = User.builder()
+                .username(userRequest.getUsername())
+                .password(passwordEncoder.encode(userRequest.getPassword()))
+                .build();
+
+        userRepository.save(user);
+        return ResponseEntity.ok("User registered successfully");
     }
 }
