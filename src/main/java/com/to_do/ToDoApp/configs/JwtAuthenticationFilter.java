@@ -4,6 +4,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -12,18 +14,13 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtUtils jwtUtil;
     private final UserContext userContext;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public JwtAuthenticationFilter(JwtUtils jwtUtil, UserContext userContext, JwtTokenProvider jwtTokenProvider) {
-        this.jwtUtil = jwtUtil;
+    public JwtAuthenticationFilter(UserContext userContext, JwtTokenProvider jwtTokenProvider) {
         this.userContext = userContext;
         this.jwtTokenProvider = jwtTokenProvider;
     }
-
-
-
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -33,12 +30,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (token != null && jwtTokenProvider.validateToken(token)) {
             Integer userId = jwtTokenProvider.getUserIdFromToken(token);
+            userContext.setUserId(userId); // store userId in thread-local context
+
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(userId, null, null);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
-        filterChain.doFilter(request, response);
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            userContext.clear(); // clean up thread-local to avoid memory leaks
+        }
     }
 
     private String getTokenFromRequest(HttpServletRequest request) {

@@ -16,13 +16,16 @@ public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer taskId;
-    private Integer userId;
     private TaskStatus taskStatus;
     private String taskDescription;
     private LocalDate dueDate;
 
     @Version
     private Long version;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "parent_task_id")

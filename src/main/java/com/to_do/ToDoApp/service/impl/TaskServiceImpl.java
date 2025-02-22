@@ -2,8 +2,10 @@ package com.to_do.ToDoApp.service.impl;
 
 import com.to_do.ToDoApp.configs.UserContext;
 import com.to_do.ToDoApp.entity.Task;
+import com.to_do.ToDoApp.entity.User;
 import com.to_do.ToDoApp.enums.TaskStatus;
 import com.to_do.ToDoApp.repository.ToDoTaskRepository;
+import com.to_do.ToDoApp.repository.UserRepository;
 import com.to_do.ToDoApp.schemaobjects.request.CreateTaskRequestSo;
 import com.to_do.ToDoApp.schemaobjects.request.SubCreateTaskRequestSo;
 import com.to_do.ToDoApp.schemaobjects.request.UpdateTaskRequestSo;
@@ -25,12 +27,15 @@ import java.util.List;
 public class TaskServiceImpl implements TaskService {
     private final ToDoTaskRepository toDoTaskRepository;
     private final UserContext userContext;
+    private final UserRepository userRepository;
 
     @Override
+    @Transactional
     public List<Task> getTasks() {
         // TODO Make this Paginated
         Integer userId = userContext.getUserId();
-        return toDoTaskRepository.findAllByUserId(userId);
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        return user.getTasks();
     }
 
     @Override
@@ -43,8 +48,10 @@ public class TaskServiceImpl implements TaskService {
     public void createTask(CreateTaskRequestSo createTaskRequestSo) {
 
         Integer userIdVal = userContext.getUserId();
+        User user = userRepository.findById(userIdVal).orElseThrow(() -> new RuntimeException("User not found"));
+
         Task task = Task.builder()
-                .userId(userIdVal)
+                .user(user)
                 .taskDescription(createTaskRequestSo.getTaskDescription())
                 .dueDate(createTaskRequestSo.getDueDate())
                 .taskStatus(TaskStatus.PENDING)
@@ -55,19 +62,20 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public void createSubTask(SubCreateTaskRequestSo subCreateTaskRequestSo) {
         Integer userIdVal = userContext.getUserId();
+        User user = userRepository.findById(userIdVal).orElseThrow(() -> new RuntimeException("User not found"));
         Task parentTask = getTaskNotFound(subCreateTaskRequestSo.getParentTaskId(), userIdVal);
 
 
         Task task = Task.builder()
-                .userId(userIdVal)
+                .user(user)
                 .taskDescription(subCreateTaskRequestSo.getTaskDescription())
                 .dueDate(subCreateTaskRequestSo.getDueDate())
                 .taskStatus(TaskStatus.PENDING)
                 .build();
 
-            parentTask.addSubTask(task);
-            toDoTaskRepository.save(parentTask);
-        }
+        parentTask.addSubTask(task);
+        toDoTaskRepository.save(parentTask);
+    }
 
     @Transactional
     public void updateTask(UpdateTaskRequestSo updateTaskRequestSo) {
@@ -120,7 +128,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     private Task getTaskNotFound(Integer taskId, Integer userId) {
-        return toDoTaskRepository.findByUserIdAndTaskId(userId, taskId)
+        return toDoTaskRepository.findByTaskIdAndUser_UserId(userId, taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
     }
 }

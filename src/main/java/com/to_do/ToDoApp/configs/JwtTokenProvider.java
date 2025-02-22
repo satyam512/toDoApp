@@ -21,17 +21,16 @@ public class JwtTokenProvider {
 
     public String generateToken(Integer userId) {
         return Jwts.builder()
-                .setSubject(userId.toString())
+                .setSubject(userId.toString()) // store userId in the subject
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
-                .signWith(key)
+                .setExpiration(new Date(System.currentTimeMillis() + validityInMilliseconds))
+                .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
     }
 
     public Integer getUserIdFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
+        Claims claims = Jwts.parser()
+                .setSigningKey(secretKey)
                 .parseClaimsJws(token)
                 .getBody();
         return Integer.parseInt(claims.getSubject());

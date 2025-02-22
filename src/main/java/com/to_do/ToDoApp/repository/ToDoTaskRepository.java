@@ -9,6 +9,5 @@ import java.util.Optional;
 
 @Repository
 public interface ToDoTaskRepository extends JpaRepository<Task, Integer> {
-    List<Task> findAllByUserId(Integer userId);
-    Optional<Task> findByUserIdAndTaskId(Integer userId, Integer taskId);
+    Optional<Task> findByTaskIdAndUser_UserId(Integer userId, Integer taskId);
 }
