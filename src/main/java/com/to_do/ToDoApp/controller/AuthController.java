@@ -1,6 +1,5 @@
 package com.to_do.ToDoApp.controller;
 
-import com.to_do.ToDoApp.configs.JwtTokenProvider;
 import com.to_do.ToDoApp.configs.JwtUtils;
 import com.to_do.ToDoApp.entity.User;
 import com.to_do.ToDoApp.repository.UserRepository;

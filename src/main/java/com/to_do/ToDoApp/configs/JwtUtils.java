@@ -13,7 +13,7 @@ import java.util.Date;
 @Component
 public class JwtUtils {
 
-    private static final String SECRET = "yourSecretKey"; // TODO From values
+    private static final String SECRET = "yourSecretKeyTwsometheinvjsecbekcvrefeewfeasefccseffdcfescsesefscecsececsefcscsecesecscefsfscesfsccecescescescesc"; // TODO From values
 
     public String generateToken(String username) {
         return Jwts.builder()
