@@ -14,29 +14,38 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtil;
     private final UserContext userContext;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    public JwtAuthenticationFilter(JwtUtils jwtUtil, UserContext userContext) {
+    public JwtAuthenticationFilter(JwtUtils jwtUtil, UserContext userContext, JwtTokenProvider jwtTokenProvider) {
         this.jwtUtil = jwtUtil;
         this.userContext = userContext;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
+
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        try {
-            String authHeader = request.getHeader("Authorization");
 
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                String token = authHeader.substring(7);
-                Integer userId = jwtUtil.getUserIdFromToken(token);
-                userContext.setUserId(userId); // Store userId in ThreadLocal
-            }
+        String token = getTokenFromRequest(request);
 
-            filterChain.doFilter(request, response);
-
-        } finally {
-            userContext.clear(); // Clean up ThreadLocal to prevent memory leaks
+        if (token != null && jwtTokenProvider.validateToken(token)) {
+            Integer userId = jwtTokenProvider.getUserIdFromToken(token);
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(userId, null, null);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
+
+        filterChain.doFilter(request, response);
+    }
+
+    private String getTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 }
