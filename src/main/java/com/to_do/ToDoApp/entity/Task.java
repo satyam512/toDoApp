@@ -4,8 +4,6 @@ import com.to_do.ToDoApp.enums.TaskStatus;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDate;
 import java.util.List;
