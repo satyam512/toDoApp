@@ -29,7 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = getTokenFromRequest(request);
 
         if (token != null && jwtTokenProvider.validateToken(token)) {
-            Integer userId = jwtTokenProvider.getUserIdFromToken(token);
+            String userId = jwtTokenProvider.getUserIdFromToken(token);
             userContext.setUserId(userId); // store userId in thread-local context
 
             UsernamePasswordAuthenticationToken authentication =

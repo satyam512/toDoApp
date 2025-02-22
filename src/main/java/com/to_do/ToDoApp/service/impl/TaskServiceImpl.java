@@ -33,22 +33,22 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     public List<Task> getTasks() {
         // TODO Make this Paginated
-        Integer userId = userContext.getUserId();
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        String userId = userContext.getUserId();
+        User user = userRepository.findByUsername(userId).orElseThrow(() -> new RuntimeException("User not found"));
         return user.getTasks();
     }
 
     @Override
     public Task getTaskById(Integer taskId) {
-        Integer userId = userContext.getUserId();
-        return getTaskNotFound(userId, taskId);
+        String userId = userContext.getUserId();
+        return getTaskNotFound(taskId, userId);
     }
 
     @Override
     public void createTask(CreateTaskRequestSo createTaskRequestSo) {
 
-        Integer userIdVal = userContext.getUserId();
-        User user = userRepository.findById(userIdVal).orElseThrow(() -> new RuntimeException("User not found"));
+        String userIdVal = userContext.getUserId();
+        User user = userRepository.findByUsername(userIdVal).orElseThrow(() -> new RuntimeException("User not found"));
 
         Task task = Task.builder()
                 .user(user)
@@ -61,8 +61,8 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public void createSubTask(SubCreateTaskRequestSo subCreateTaskRequestSo) {
-        Integer userIdVal = userContext.getUserId();
-        User user = userRepository.findById(userIdVal).orElseThrow(() -> new RuntimeException("User not found"));
+        String userIdVal = userContext.getUserId();
+        User user = userRepository.findByUsername(userIdVal).orElseThrow(() -> new RuntimeException("User not found"));
         Task parentTask = getTaskNotFound(subCreateTaskRequestSo.getParentTaskId(), userIdVal);
 
 
@@ -79,7 +79,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Transactional
     public void updateTask(UpdateTaskRequestSo updateTaskRequestSo) {
-        Integer userId = userContext.getUserId();
+        String userId = userContext.getUserId();
         Task task = getTaskNotFound(updateTaskRequestSo.getTaskId(), userId);
 
         copyNonNullProperties(updateTaskRequestSo, task);
@@ -112,7 +112,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     @Transactional
     public void updateTaskStatus(Integer taskId, Integer parentTaskId, TaskStatus taskStatus) {
-        Integer userId = userContext.getUserId();
+        String userId = userContext.getUserId();
         Task task = getTaskNotFound(taskId, userId);
 
         task.setTaskStatus(taskStatus);
@@ -127,8 +127,8 @@ public class TaskServiceImpl implements TaskService {
         }
     }
 
-    private Task getTaskNotFound(Integer taskId, Integer userId) {
-        return toDoTaskRepository.findByTaskIdAndUser_UserId(userId, taskId)
+    private Task getTaskNotFound(Integer taskId, String userId) {
+        return toDoTaskRepository.findByTaskIdAndUser_Username(taskId, userId)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
     }
 }

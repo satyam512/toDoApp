@@ -24,7 +24,7 @@ public class Task {
     private Long version;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "username")
     private User user;
 
     @ManyToOne
