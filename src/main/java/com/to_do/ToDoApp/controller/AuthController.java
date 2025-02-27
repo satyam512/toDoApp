@@ -1,6 +1,6 @@
 package com.to_do.ToDoApp.controller;
 
-import com.to_do.ToDoApp.configs.JwtUtils;
+import com.to_do.ToDoApp.configs.JwtTokenProvider;
 import com.to_do.ToDoApp.entity.User;
 import com.to_do.ToDoApp.repository.UserRepository;
 import com.to_do.ToDoApp.schemaobjects.request.AuthRequest;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
-    private final JwtUtils jwtUtils;
+    private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
@@ -31,7 +31,7 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
         );
 
-        return jwtUtils.generateToken(authRequest.getUsername());
+        return jwtTokenProvider.generateToken(authRequest.getUsername());
     }
 
     @PostMapping("/register")
