@@ -42,6 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } finally {
             userContext.clear(); // clean up thread-local to avoid memory leaks
         }
+        System.out.println("Request complete");
     }
 
     private String getTokenFromRequest(HttpServletRequest request) {
